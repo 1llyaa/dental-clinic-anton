@@ -1,0 +1,111 @@
+---
+import Base from '../../layouts/Base.astro';
+import PhotoSlot from '../../components/PhotoSlot.astro';
+import { team, type Member } from '../../data/team';
+
+export function getStaticPaths() {
+  return team.map((m) => ({ params: { id: m.id }, props: { member: m } }));
+}
+const { member } = Astro.props as { member: Member };
+---
+
+<Base title={member.name} description={`${member.name} — ${member.role}. ${member.bio}`}>
+  <div class="container wrap">
+    <a href="/tym/" class="back">
+      ← Zpět na tým
+    </a>
+    <div class="cols">
+      <div>
+        <div class="photo">
+          <PhotoSlot src={member.photo} label={member.photoLabel} />
+        </div>
+        <a href="/objednani/" class="btn btn-primary btn-block book">
+          Objednat se
+        </a>
+      </div>
+      <div>
+        <h1 class="name">{member.name}</h1>
+        <p class="role">{member.role}</p>
+        <p class="lead bio">{member.bio}</p>
+        <p class="muted bio2">{member.bio2}</p>
+        <div class="grid-2 lists">
+          <div>
+            <h2 class="label">Vzdělání a praxe</h2>
+            <div class="accent-list">
+              {member.education.map((e) => (
+                <p>{e}</p>
+              ))}
+            </div>
+          </div>
+          <div>
+            <h2 class="label">Věnuje se</h2>
+            <div class="accent-list">
+              {member.focus.map((f) => (
+                <p>{f}</p>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</Base>
+
+<style>
+  .wrap {
+    padding-top: 32px;
+    padding-bottom: 60px;
+  }
+  .back {
+    font-family: var(--font-head);
+    font-weight: 600;
+    color: var(--muted);
+  }
+  .cols {
+    margin-top: 24px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+  @media (min-width: 760px) {
+    .cols {
+      grid-template-columns: 0.8fr 1.2fr;
+    }
+  }
+  .photo {
+    border-radius: var(--r-lg);
+    overflow: hidden;
+    height: 380px;
+    display: flex;
+  }
+  .book {
+    margin-top: 16px;
+  }
+  .name {
+    margin-bottom: 6px;
+    font-family: var(--font-head);
+    font-weight: 800;
+    color: var(--navy);
+    font-size: clamp(28px, 4vw, 40px);
+    line-height: 1.15;
+  }
+  .role {
+    margin-bottom: 24px;
+    color: var(--cyan);
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 19px;
+  }
+  .bio {
+    margin-bottom: 18px;
+  }
+  .bio2 {
+    margin-bottom: 32px;
+  }
+  .lists {
+    gap: 28px;
+  }
+  .label {
+    margin-bottom: 12px;
+  }
+</style>

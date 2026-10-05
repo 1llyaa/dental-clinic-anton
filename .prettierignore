@@ -1,0 +1,7 @@
+dist
+node_modules
+.astro
+Design
+package-lock.json
+*.php
+*.md

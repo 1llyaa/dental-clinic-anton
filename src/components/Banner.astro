@@ -1,0 +1,111 @@
+---
+// Empty shells filled at runtime from /data/banner.json (see scripts/runtime.ts).
+// Hidden by default so nothing shows when the file is missing or the banner is off.
+---
+
+<div class="banner" data-banner hidden>
+  <div class="container inner">
+    <span class="dot" aria-hidden="true"></span>
+    <p class="msg" role="status">
+      <strong data-banner-title>Oznámení:</strong> <span data-banner-text></span>
+    </p>
+    <button type="button" class="close" aria-label="Zavřít oznámení" data-banner-close>
+      ✕
+    </button>
+  </div>
+</div>
+
+<dialog class="banner-modal" data-banner-modal aria-labelledby="banner-modal-title">
+  <img data-banner-modal-img alt="" />
+  <div class="body">
+    <h2 id="banner-modal-title" data-banner-modal-title></h2>
+    <p data-banner-modal-text></p>
+    <form method="dialog">
+      <button class="btn btn-primary">Rozumím</button>
+    </form>
+  </div>
+</dialog>
+
+<style>
+  .banner {
+    background: var(--bg-tint);
+    border-bottom: 1px solid var(--bg-tint-border);
+    color: var(--navy);
+  }
+  .banner[hidden] {
+    display: none;
+  }
+  .inner {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+  .dot {
+    flex: 0 0 auto;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--cyan);
+    margin-top: 10px;
+  }
+  .msg {
+    flex: 1 1 auto;
+    font-size: 16px;
+    white-space: pre-line;
+  }
+  .msg strong {
+    font-family: var(--font-head);
+    font-weight: 700;
+  }
+  .close {
+    flex: 0 0 auto;
+    background: transparent;
+    border: 1px solid var(--bg-tint-border);
+    color: var(--navy);
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    line-height: 1;
+  }
+  .close:hover {
+    background: #fff;
+  }
+
+  .banner-modal {
+    border: 0;
+    border-radius: var(--r-xl);
+    padding: 0;
+    width: min(560px, calc(100vw - 32px));
+    max-height: calc(100vh - 32px);
+    overflow: auto;
+    box-shadow: 0 24px 60px rgba(13, 39, 101, 0.3);
+    color: var(--text);
+  }
+  .banner-modal::backdrop {
+    background: rgba(13, 39, 101, 0.45);
+  }
+  .banner-modal img {
+    width: 100%;
+    max-height: 50vh;
+    object-fit: cover;
+  }
+  .banner-modal .body {
+    padding: 24px;
+  }
+  .banner-modal h2 {
+    font-family: var(--font-head);
+    font-weight: 800;
+    color: var(--navy);
+    font-size: 24px;
+    line-height: 1.2;
+    margin-bottom: 10px;
+  }
+  .banner-modal p {
+    color: var(--muted);
+    white-space: pre-line;
+    margin-bottom: 20px;
+  }
+</style>

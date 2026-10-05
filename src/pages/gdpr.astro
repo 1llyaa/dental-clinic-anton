@@ -1,0 +1,73 @@
+---
+import Base from '../layouts/Base.astro';
+import { gdprSections } from '../data/gdpr';
+import { mailHref, site } from '../data/site';
+---
+
+<Base
+  title="Ochrana osobních údajů"
+  description="Informace o zpracování osobních údajů v zubní ordinaci Lišov."
+>
+  <div class="wrap">
+    <h1 class="title">Ochrana osobních údajů</h1>
+    <p class="muted p">
+      Správcem osobních údajů je {site.name}. Osobní údaje zpracováváme v rozsahu nezbytném pro
+      poskytování zdravotní péče a vedení zdravotnické dokumentace podle zákona č. 372/2011 Sb.
+    </p>
+    {gdprSections.map((g) => (
+      <section class="sec">
+        <h2>{g.title}</h2>
+        <p class="muted">{g.text}</p>
+      </section>
+    ))}
+    <p class="note-box">
+      Plné znění dokumentu doplní ordinace ve spolupráci s pověřencem pro ochranu osobních údajů.
+    </p>
+
+    <section class="sec impressum" id="impressum">
+      <h2>Impressum</h2>
+      <p class="muted">
+        {site.name}
+        <br />
+        {site.address}
+        <br />
+        IČO: {site.ico}
+        <br />
+        E-mail: <a href={mailHref}>{site.email}</a>
+      </p>
+    </section>
+  </div>
+</Base>
+
+<style>
+  .wrap {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 44px var(--gutter) 72px;
+  }
+  .title {
+    margin-bottom: 20px;
+    font-family: var(--font-head);
+    font-weight: 800;
+    color: var(--navy);
+    font-size: clamp(28px, 4vw, 40px);
+    line-height: 1.15;
+  }
+  .p {
+    margin-bottom: 18px;
+  }
+  .sec {
+    margin-bottom: 24px;
+  }
+  h2 {
+    margin-bottom: 6px;
+    font-family: var(--font-head);
+    font-weight: 800;
+    color: var(--navy);
+    font-size: 19px;
+  }
+  .impressum {
+    margin-top: 40px;
+    scroll-margin-top: 90px;
+  }
+</style>

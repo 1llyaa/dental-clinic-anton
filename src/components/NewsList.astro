@@ -1,0 +1,43 @@
+---
+// Filled at runtime from /data/news.json (owner edits it in the admin).
+interface Props {
+  limit?: number;
+}
+const { limit } = Astro.props;
+---
+
+<div class="news" data-news data-news-limit={limit} aria-busy="true"></div>
+<template data-news-template>
+  <article class="item">
+    <time class="date"></time>
+    <h2 class="title" data-news-title></h2>
+    <p class="text" data-news-text></p>
+  </article>
+</template>
+
+<style>
+  .news :global(.item) {
+    padding: 24px 0;
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .news :global(.date) {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--subtle);
+    font-family: var(--font-head);
+    font-weight: 600;
+    font-size: 14px;
+  }
+  .news :global(.title) {
+    margin-bottom: 8px;
+    font-family: var(--font-head);
+    font-weight: 800;
+    color: var(--navy);
+    font-size: 22px;
+    line-height: 1.3;
+  }
+  .news :global(.text) {
+    color: var(--muted);
+    white-space: pre-line;
+  }
+</style>

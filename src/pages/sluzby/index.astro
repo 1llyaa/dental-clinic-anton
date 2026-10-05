@@ -1,0 +1,51 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHero from '../../components/PageHero.astro';
+import { services } from '../../data/services';
+---
+
+<Base
+  title="Služby"
+  description="Preventivní prohlídky, dentální hygiena, estetická a záchovná stomatologie, protetika a péče o děti v Lišově."
+>
+  <PageHero
+    eyebrow="Služby"
+    title="Co u nás můžete řešit"
+    intro="Vyberte oblast a zobrazí se podrobnější popis, průběh ošetření a orientační cena."
+  />
+  <div class="container grid-3 list">
+    {services.map((s) => (
+      <a href={`/sluzby/${s.id}/`} class="card service">
+        <span class="bar" aria-hidden="true" />
+        <h2 class="h-card">{s.title}</h2>
+        <p class="muted grow">{s.lead}</p>
+        <span class="link-arrow">Více →</span>
+      </a>
+    ))}
+  </div>
+</Base>
+
+<style>
+  .list {
+    padding-top: 44px;
+    padding-bottom: 44px;
+    gap: 20px;
+  }
+  .service {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 26px;
+    color: inherit;
+  }
+  .bar {
+    width: 40px;
+    height: 4px;
+    border-radius: 4px;
+    background: var(--cyan);
+    margin-bottom: 6px;
+  }
+  .grow {
+    flex: 1 1 auto;
+  }
+</style>

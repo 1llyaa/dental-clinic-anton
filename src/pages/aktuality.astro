@@ -1,0 +1,40 @@
+---
+import Base from '../layouts/Base.astro';
+import NewsList from '../components/NewsList.astro';
+import PageHero from '../components/PageHero.astro';
+---
+
+<Base
+  title="Aktuality"
+  description="Provozní oznámení, dovolené a novinky ze zubní ordinace v Lišově."
+>
+  <PageHero
+    eyebrow="Aktuality"
+    title="Novinky z ordinace"
+    intro="Provozní oznámení, dovolené a informace o péči."
+  />
+  <div class="wrap">
+    <NewsList />
+    <p class="muted empty" data-news-empty hidden>
+      Momentálně tu nejsou žádné novinky.
+    </p>
+    <noscript>
+      <p class="muted empty">Novinky se zobrazí po zapnutí JavaScriptu v prohlížeči.</p>
+    </noscript>
+  </div>
+</Base>
+
+<style>
+  .wrap {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 20px var(--gutter) 72px;
+    min-height: 240px;
+  }
+  .empty {
+    padding: 24px 0;
+  }
+  .empty[hidden] {
+    display: none;
+  }
+</style>
