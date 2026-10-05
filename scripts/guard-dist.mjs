@@ -1,5 +1,5 @@
 // Fails the build if dist/ contains anything that would overwrite content the
-// clinic owner manages on the server. dist/ is uploaded wholesale via SFTP.
+// clinic owner manages on the server. dist/ is mirrored wholesale via FTPS (CI deploy job).
 import { existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 

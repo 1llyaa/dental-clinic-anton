@@ -1,6 +1,7 @@
-# Deploy — Wedos NoLimit (manual)
+# Deploy — Wedos NoLimit
 
-The site is static files plus one small PHP admin. Nothing is deployed by CI; you upload `dist/` yourself.
+The site is static files plus one small PHP admin. Every push to `main` deploys automatically (GitHub Actions, FTPS)
+once build and tests pass. The first deploy is manual, see below.
 
 ## What must never be overwritten on the server
 
@@ -28,31 +29,53 @@ upload tool to **exclude** them, so a sync with "delete remote files" can't remo
 6. Copy `admin/config.example.php` → `admin/config.php`, upload it, open `https://<domain>/admin/`. With no password
    configured, the page lets you type a password and prints the `'password_hash' => '…'` line. Paste it into
    `config.php`, upload again. Log in.
-7. Second layer (Basic Auth):
+7. Optional second layer (Basic Auth):
    ```sh
    htpasswd -nbB ordinace 'SOME-LONG-PASSWORD' > .htpasswd     # macOS has htpasswd built in
    ```
-   Upload as `admin/.htpasswd`, then in `admin/.htaccess` uncomment the `Auth*` lines and set `AuthUserFile` to the
-   path from step 5. Wrong path = error 500 on `/admin/` → fix the path. Keep this edited `.htaccess` locally too
-   (see "Every release").
+   Upload as `admin/.htpasswd` (never deployed by CI). Then in the repo's `public/admin/.htaccess` uncomment the
+   `Auth*` lines, set `AuthUserFile` to the path from step 5 and push to `main` — the deploy ships it. Wrong path =
+   error 500 on `/admin/` → fix the path and push again.
 8. Smoke test on the live site: turn the banner on with a photo, check the website within a minute, turn it off.
 
-## Every release
+## Every release (automatic)
+
+Merge or push to `main`. CI (`.github/workflows/ci.yml`) builds, tests, runs `guard-dist`, then the `deploy` job
+mirrors `dist/` into the web root over FTPS with `lftp mirror --reverse --delete`. Other branches and PRs never deploy.
+
+Server layout (FTP root):
+
+```
+www/
+├─ domains/
+│  └─ zubnilisov.cz/   ← deploy target; everything here comes from dist/, except:
+│     ├─ data/         ← admin content, never touched
+│     ├─ uploads/      ← admin photos, never touched
+│     └─ admin/config.php, admin/.htpasswd  ← set up once on the server, never touched
+└─ subdom/             ← outside the target, never touched
+```
+
+`admin/.htaccess` is deployed from the repo like everything else (see step 7 for Basic Auth).
+
+### One-time setup
+
+1. GitHub → Settings → Environments → New environment `production`. Add secrets:
+   - `FTP_HOST` — Wedos FTP server
+   - `FTP_USER`, `FTP_PASSWORD` — preferably a dedicated FTP account limited to this domain
+   - `FTP_REMOTE_DIR` — `/www/domains/zubnilisov.cz/`
+2. GitHub → Settings → Branches: protect `main`, require the `site` and `php` checks.
+3. Actions → CI → Run workflow on `main` with **dry run** checked. Read the log: only paths under the web root, no
+   deletes, nothing in `data/`, `uploads/` or the excluded admin files. Then merge/push to `main` for the real deploy.
+
+Actions → CI → Run workflow (dry run unchecked) redeploys the current `main` without a new commit.
+
+### Manual fallback
 
 ```sh
 npm ci && npm run build      # fails if dist/ is unsafe
-```
-
-Upload `dist/` contents. Exclude: `data/`, `uploads/`, `admin/config.php`, `admin/.htpasswd`.
-If you enabled Basic Auth, also exclude `admin/.htaccess` (otherwise the release replaces it with the version where
-Basic Auth is commented out).
-
-Example with `lftp` (mirror, deleting stale files but never the excluded ones):
-
-```sh
-lftp -u USER sftp://HOST -e "mirror --reverse --delete --verbose \
+lftp -u USER ftp://HOST -e "set ftp:ssl-force true; mirror --reverse --delete --verbose \
   --exclude-glob data/ --exclude-glob uploads/ \
-  --exclude-glob admin/config.php --exclude-glob admin/.htpasswd --exclude-glob admin/.htaccess \
+  --exclude-glob admin/config.php --exclude-glob admin/.htpasswd \
   dist/ /www/domains/zubnilisov.cz/; quit"
 ```
 
