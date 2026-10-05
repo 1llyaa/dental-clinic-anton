@@ -1,9 +1,15 @@
 name: CI
 
-# Build and test only. Deployment is manual (SFTP upload of dist/) — see DEPLOY.md.
+# Build and test on every push/PR. Pushes to main also deploy dist/ to Wedos over FTPS — see DEPLOY.md.
 on:
   push:
   pull_request:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Deploy dry run (list changes, upload nothing)'
+        type: boolean
+        default: true
 
 jobs:
   site:
@@ -39,3 +45,36 @@ jobs:
         run: find public tools tests -name '*.php' -print0 | xargs -0 -n1 php -l
       - name: Unit tests
         run: php tests/php/run.php
+
+  deploy:
+    needs: [site, php]
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    environment: production
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+      - run: sudo apt-get update -q && sudo apt-get install -y -q lftp
+      # Excludes = server-owned content (same list as scripts/guard-dist.mjs).
+      # --delete never touches excluded paths, so data/ and uploads/ stay.
+      - name: Mirror dist/ to web root
+        env:
+          FTP_HOST: ${{ secrets.FTP_HOST }}
+          FTP_USER: ${{ secrets.FTP_USER }}
+          LFTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          FTP_REMOTE_DIR: ${{ secrets.FTP_REMOTE_DIR }}
+          DRY_RUN: ${{ inputs.dry_run && '--dry-run' || '' }}
+        run: |
+          lftp --env-password -u "$FTP_USER" "ftp://$FTP_HOST" -e "
+            set ftp:ssl-force true; set ftp:ssl-protect-data true; set ssl:verify-certificate yes;
+            set net:max-retries 2; set net:timeout 30;
+            mirror --reverse --delete --verbose --parallel=4 $DRY_RUN \
+              --exclude-glob data/ --exclude-glob uploads/ \
+              --exclude-glob admin/config.php --exclude-glob admin/.htpasswd \
+              dist/ '$FTP_REMOTE_DIR';
+            quit"
