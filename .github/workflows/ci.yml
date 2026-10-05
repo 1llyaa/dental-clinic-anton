@@ -1,0 +1,41 @@
+name: CI
+
+# Build and test only. Deployment is manual (SFTP upload of dist/) — see DEPLOY.md.
+on:
+  push:
+  pull_request:
+
+jobs:
+  site:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run format:check
+      - run: npm run check
+      - run: npm test
+      - run: npm run build # includes guard-dist (fails if dist/ could overwrite server content)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist
+          include-hidden-files: true # keep .htaccess files
+          retention-days: 14
+
+  php:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: gd, fileinfo, mbstring, exif
+          coverage: none
+      - name: Lint
+        run: find public tools tests -name '*.php' -print0 | xargs -0 -n1 php -l
+      - name: Unit tests
+        run: php tests/php/run.php

@@ -9,7 +9,10 @@
     "check": "astro check",
     "test": "vitest run",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "test:php": "docker build -q -t zubni-lisov-php docker >/dev/null && docker run --rm -v \"$PWD:/app\" -w /app zubni-lisov-php php tests/php/run.php",
+    "serve:php": "./scripts/local-server.sh",
+    "test:e2e": "tests/e2e/admin-smoke.sh"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",

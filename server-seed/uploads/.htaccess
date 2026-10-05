@@ -1,0 +1,21 @@
+# Uploaded banner images. Never execute anything here.
+Options -Indexes -ExecCGI
+RemoveHandler .php .phtml .php3 .php4 .php5 .php7 .php8 .phar .pht
+RemoveType .php .phtml .php3 .php4 .php5 .php7 .php8 .phar .pht
+
+<IfModule mod_php.c>
+  php_flag engine off
+</IfModule>
+
+<FilesMatch "\.(php|phtml|php\d|phar|pht)$">
+  Require all denied
+</FilesMatch>
+
+# Whitelist: only the JPEGs the admin creates are served.
+Require all denied
+<FilesMatch "^banner-[0-9a-f-]+\.jpg$">
+  Require all granted
+  <IfModule mod_headers.c>
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </IfModule>
+</FilesMatch>
