@@ -3,6 +3,10 @@ declare(strict_types=1);
 
 const LOGIN_MAX_FAILS = 5;
 const LOGIN_LOCK_SECONDS = 15 * 60;
+// All addresses together: stops guessing spread over many IPs. 30 failures per hour.
+const LOGIN_GLOBAL_MAX_FAILS = 30;
+const LOGIN_GLOBAL_WINDOW = 3600;
+const GLOBAL_KEY = '*';
 
 function start_admin_session(array $config): void
 {
@@ -75,49 +79,98 @@ function attempts_path(array $config): string
     return $config['data_dir'] . '/private/login-attempts.json';
 }
 
+/** Rate-limit key: IPv4 as is, IPv6 grouped by /64 (one customer usually owns a whole /64). */
+function ip_key(string $ip): string
+{
+    if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
+        $bin = inet_pton($ip);
+        return inet_ntop(substr($bin, 0, 8) . str_repeat("\0", 8)) . '/64';
+    }
+    return $ip;
+}
+
+function lock_remaining(array $all, string $key, int $now): int
+{
+    return max(0, (int) ($all[$key]['locked_until'] ?? 0) - $now);
+}
+
 /** Seconds until $ip may try again (0 = not locked). */
 function login_locked_for(array $config, string $ip, ?int $now = null): int
 {
     $now = $now ?? time();
     $all = read_json(attempts_path($config));
-    $until = (int) ($all[$ip]['locked_until'] ?? 0);
-    return max(0, $until - $now);
+    return max(lock_remaining($all, ip_key($ip), $now), lock_remaining($all, GLOBAL_KEY, $now));
+}
+
+/** Caller must hold with_lock(). */
+function add_failure(array $all, string $key, int $max, int $window, int $now): array
+{
+    $e = $all[$key] ?? ['count' => 0, 'first' => $now, 'last' => 0, 'locked_until' => 0];
+    $expiredLock = ($e['locked_until'] ?? 0) && $e['locked_until'] <= $now;
+    if ($expiredLock || $now - (int) ($e['first'] ?? $now) > $window) {
+        $e = ['count' => 0, 'first' => $now, 'last' => 0, 'locked_until' => 0];
+    }
+    $e['count']++;
+    $e['last'] = $now;
+    if ($e['count'] >= $max) {
+        $e['locked_until'] = $now + LOGIN_LOCK_SECONDS;
+    }
+    $all[$key] = $e;
+    return $all;
 }
 
 function record_login_failure(array $config, string $ip, ?int $now = null): void
 {
     $now = $now ?? time();
-    with_lock($config['data_dir'], function () use ($config, $ip, $now) {
-        $all = read_json(attempts_path($config));
-        // forget stale entries so the file stays small
-        foreach ($all as $k => $v) {
-            if (($v['last'] ?? 0) < $now - 86400) {
-                unset($all[$k]);
-            }
+    with_lock($config['data_dir'], fn() => record_failure_locked($config, $ip, $now));
+}
+
+/** Caller must hold with_lock(). */
+function record_failure_locked(array $config, string $ip, int $now): void
+{
+    $all = read_json(attempts_path($config));
+    foreach ($all as $k => $v) { // forget stale entries so the file stays small
+        if ($k !== GLOBAL_KEY && ($v['last'] ?? 0) < $now - 86400) {
+            unset($all[$k]);
         }
-        $entry = $all[$ip] ?? ['count' => 0, 'last' => 0, 'locked_until' => 0];
-        if (($entry['locked_until'] ?? 0) && $entry['locked_until'] <= $now) {
-            $entry['count'] = 0; // previous lock expired, start over
-            $entry['locked_until'] = 0;
-        }
-        $entry['count']++;
-        $entry['last'] = $now;
-        if ($entry['count'] >= LOGIN_MAX_FAILS) {
-            $entry['locked_until'] = $now + LOGIN_LOCK_SECONDS;
-        }
-        $all[$ip] = $entry;
-        write_json_atomic(attempts_path($config), $all);
-    });
+    }
+    $all = add_failure($all, ip_key($ip), LOGIN_MAX_FAILS, 86400, $now);
+    $all = add_failure($all, GLOBAL_KEY, LOGIN_GLOBAL_MAX_FAILS, LOGIN_GLOBAL_WINDOW, $now);
+    write_json_atomic(attempts_path($config), $all);
 }
 
 function clear_login_failures(array $config, string $ip): void
 {
     with_lock($config['data_dir'], function () use ($config, $ip) {
         $all = read_json(attempts_path($config));
-        if (isset($all[$ip])) {
-            unset($all[$ip]);
+        if (isset($all[ip_key($ip)])) {
+            unset($all[ip_key($ip)]);
             write_json_atomic(attempts_path($config), $all);
         }
+    });
+}
+
+/**
+ * Check the lock, verify the password and record a failure as one step, so
+ * parallel requests cannot all slip past the check. Returns ok|wrong|locked.
+ */
+function attempt_login(array $config, string $ip, string $password, ?int $now = null): string
+{
+    $now = $now ?? time();
+    return with_lock($config['data_dir'], function () use ($config, $ip, $password, $now) {
+        if (login_locked_for($config, $ip, $now) > 0) {
+            return 'locked';
+        }
+        if ($password !== '' && password_verify($password, (string) $config['password_hash'])) {
+            $all = read_json(attempts_path($config));
+            if (isset($all[ip_key($ip)])) {
+                unset($all[ip_key($ip)]);
+                write_json_atomic(attempts_path($config), $all);
+            }
+            return 'ok';
+        }
+        record_failure_locked($config, $ip, $now);
+        return 'wrong';
     });
 }
 

@@ -50,6 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         handle_login($config, $ip);
     }
     if (!is_logged_in($config)) {
+        flash('error', 'Z bezpečnostních důvodů jste byli odhlášeni. Přihlaste se prosím a změny uložte znovu.');
         redirect();
     }
     try {
@@ -96,26 +97,26 @@ render_dashboard([
 
 function handle_login(array $config, string $ip): void
 {
-    if (login_locked_for($config, $ip) > 0) {
-        redirect();
-    }
-    $password = (string) ($_POST['password'] ?? '');
-    if ($password !== '' && password_verify($password, $config['password_hash'])) {
-        clear_login_failures($config, $ip);
+    $result = attempt_login($config, $ip, (string) ($_POST['password'] ?? ''));
+    if ($result === 'ok') {
         login();
         redirect();
     }
-    record_login_failure($config, $ip);
-    usleep(400000); // slow down guessing a little
-    if (login_locked_for($config, $ip) === 0) {
-        flash('error', 'Nesprávné heslo.');
+    if ($result === 'wrong') {
+        usleep(400000); // slow down guessing a little
+        if (login_locked_for($config, $ip) === 0) {
+            flash('error', 'Nesprávné heslo.');
+        }
     }
-    redirect();
+    redirect(); // 'locked': the login page explains the wait
 }
 
 function handle_save_banner(array $config): void
 {
     [$data, $errors] = validate_banner($_POST);
+    if ($errors && has_upload($_FILES, 'image')) {
+        $errors[] = 'Vybraný obrázek se neuložil — po opravě ho prosím vyberte znovu.';
+    }
     if ($errors) {
         flash_form('error', $errors, 'oznameni', $_POST);
         redirect('oznameni');

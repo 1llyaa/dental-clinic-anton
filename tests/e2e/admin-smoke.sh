@@ -25,6 +25,8 @@ echo "  photo.jpg = $(( $(wc -c < "$J/photo.jpg") / 1024 )) kB"
 
 echo "login"
 T=$(csrf)
+check "save with expired session explains logout" "post -d csrf=$T -d action=save_hours | grep -q 'byli odhlášeni'"
+T=$(csrf)
 check "wrong password rejected" "post -d csrf=$T -d action=login -d password=nope | grep -q 'Nesprávné heslo'"
 T=$(csrf)
 check "correct password opens dashboard" "post -d csrf=$T -d action=login --data-urlencode password=$PW | grep -q 'Odhlásit'"
@@ -49,6 +51,8 @@ check "backup created" "ls .local-server/data/backups/banner-*.json >/dev/null 2
 
 T=$(csrf)
 check "until before from rejected with message" "post -F csrf=$T -F action=save_banner -F active=1 -F text=x -F from=2026-08-10 -F until=2026-08-01 | grep -q 'dříve než datum'"
+T=$(csrf)
+check "chosen photo on a rejected save is called out" "post -F csrf=$T -F action=save_banner -F active=1 -F text=x -F from=2026-08-10 -F until=2026-08-01 -F 'image=@$J/photo.jpg;type=image/jpeg' | grep -q 'Vybraný obrázek se neuložil'"
 check "rejected save keeps previous file" "[ \"\$(json banner 'd[\"image\"]')\" = '$IMG' ]"
 T=$(csrf)
 check "PHP disguised as JPG rejected" "post -F csrf=$T -F action=save_banner -F active=1 -F text=x -F 'image=@$J/shell.jpg;type=image/jpeg' | grep -q 'není fotka'"

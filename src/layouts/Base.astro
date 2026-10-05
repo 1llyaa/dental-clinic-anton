@@ -4,7 +4,6 @@ import Banner from '../components/Banner.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import { site } from '../data/site';
-import { defaultHours } from '../data/hours.default';
 
 interface Props {
   title?: string;
@@ -14,24 +13,8 @@ const { title, description } = Astro.props;
 const fullTitle = title ? `${title} | ${site.name}` : site.name;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 
-const dayCodes: Record<string, string> = {
-  Pondělí: 'Mo',
-  Úterý: 'Tu',
-  Středa: 'We',
-  Čtvrtek: 'Th',
-  Pátek: 'Fr',
-  Sobota: 'Sa',
-  Neděle: 'Su',
-};
-const openingHours = defaultHours.regular
-  .map((r) => {
-    const m = /^(\d{1,2}:\d{2})\s*[–-]\s*(\d{1,2}:\d{2})$/.exec(r.value.trim());
-    return m && dayCodes[r.day]
-      ? `${dayCodes[r.day]} ${m[1].padStart(5, '0')}-${m[2].padStart(5, '0')}`
-      : null;
-  })
-  .filter(Boolean);
-
+// No openingHours here: hours are edited in the admin at runtime and this
+// build-time copy would go stale in search results.
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Dentist',
@@ -46,7 +29,6 @@ const jsonLd = {
     postalCode: site.zip,
     addressCountry: 'CZ',
   },
-  openingHours,
 };
 ---
 

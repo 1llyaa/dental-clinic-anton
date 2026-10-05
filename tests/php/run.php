@@ -167,12 +167,41 @@ test('successful login clears failures', function () {
     $c = cfg(tmpdir());
     record_login_failure($c, '1.2.3.4');
     clear_login_failures($c, '1.2.3.4');
-    eq([], read_json(attempts_path($c)));
+    ok(!isset(read_json(attempts_path($c))['1.2.3.4']), 'IP entry not cleared');
 });
 test('password_configured rejects empty and placeholder', function () {
     eq(false, password_configured(['password_hash' => '']));
     eq(false, password_configured(['password_hash' => '$2y$12$...']));
     eq(true, password_configured(['password_hash' => password_hash('x', PASSWORD_DEFAULT)]));
+});
+
+test('IPv6 addresses are grouped by /64, IPv4 kept whole', function () {
+    eq('2001:db8:1:2::/64', ip_key('2001:db8:1:2:aaaa:bbbb:cccc:dddd'));
+    eq('2001:db8:1:2::/64', ip_key('2001:db8:1:2::1'));
+    eq('1.2.3.4', ip_key('1.2.3.4'));
+});
+test('rotating IPv6 addresses inside one /64 still get locked', function () {
+    $c = cfg(tmpdir());
+    for ($i = 1; $i <= 5; $i++) {
+        record_login_failure($c, "2001:db8:1:2::$i", 1_000_000);
+    }
+    ok(login_locked_for($c, '2001:db8:1:2::99', 1_000_000) > 0, 'not locked');
+});
+test('global failure cap locks login when many IPs guess', function () {
+    $c = cfg(tmpdir());
+    for ($i = 1; $i <= LOGIN_GLOBAL_MAX_FAILS; $i++) {
+        record_login_failure($c, "10.0.0.$i", 1_000_000 + $i);
+    }
+    ok(login_locked_for($c, '192.168.1.1', 1_000_100) > 0, 'global lock missing');
+    eq(0, login_locked_for($c, '192.168.1.1', 1_000_100 + LOGIN_LOCK_SECONDS + 1));
+});
+test('attempt_login checks lock and records failure under one lock', function () {
+    $c = cfg(tmpdir()) + ['password_hash' => password_hash('right-password', PASSWORD_DEFAULT)];
+    for ($i = 0; $i < 5; $i++) {
+        eq('wrong', attempt_login($c, '1.2.3.4', 'bad'));
+    }
+    eq('locked', attempt_login($c, '1.2.3.4', 'right-password'));
+    eq('ok', attempt_login($c, '9.9.9.9', 'right-password'));
 });
 
 echo "upload\n";
@@ -234,6 +263,20 @@ test('file not from an HTTP upload is refused', function () {
     $d = tmpdir();
     file_put_contents("$d/x.jpg", 'x');
     throws(fn() => process_banner_upload(fake_upload("$d/x.jpg"), cfg($d)), UploadError::class);
+});
+test('memory estimate refuses photos the server cannot decode', function () {
+    eq(true, image_fits_memory(4000, 3000, 1200, 256 * 1024 ** 2));
+    eq(false, image_fits_memory(8000, 6000, 1200, 128 * 1024 ** 2));
+    eq(true, image_fits_memory(8000, 6000, 1200, -1));
+});
+test('EXIF-rotated phone photo ends up portrait and at most 1200 wide', function () use ($fakeUploaded) {
+    $d = tmpdir();
+    $src = __DIR__ . '/fixtures/rotated-6.jpg';
+    ok(is_file($src), 'fixture missing');
+    $url = process_banner_upload(fake_upload($src), cfg($d) + [], $fakeUploaded);
+    [$w, $h] = getimagesize($d . '/uploads/' . basename($url));
+    ok($h > $w, "expected portrait after EXIF rotation, got {$w}x{$h}");
+    eq([1200, 1800], [$w, $h]);
 });
 test('delete_banner_image only removes files the admin created', function () {
     $d = tmpdir();

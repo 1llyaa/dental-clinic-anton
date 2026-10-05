@@ -72,14 +72,24 @@ function process_banner_upload(array $file, array $config, ?callable $isUploaded
     }
 
     @ini_set('memory_limit', '256M');
+    if (!image_fits_memory($info[0], $info[1], (int) $config['max_width'], ini_bytes((string) ini_get('memory_limit')))) {
+        // A fatal out-of-memory error would show a blank page instead of this message.
+        throw new UploadError('Fotka má příliš velké rozlišení. Zmenšete ji prosím a nahrajte znovu.');
+    }
+    $angle = $mime === 'image/jpeg' ? exif_rotation($tmp) : 0;
     $src = load_image($tmp, $mime);
     if (!$src) {
         throw new UploadError('Obrázek se nepodařilo přečíst. Zkuste prosím jinou fotku.');
     }
-    if ($mime === 'image/jpeg') {
-        $src = apply_exif_orientation($src, $tmp);
+    // Resize first, rotate the small copy: rotating the full photo would need a second full-size bitmap.
+    $out = resize_to_width($src, (int) $config['max_width'], $angle !== 0 && $angle !== 180);
+    if ($angle !== 0) {
+        $rotated = imagerotate($out, $angle, 0);
+        if ($rotated) {
+            imagedestroy($out);
+            $out = $rotated;
+        }
     }
-    $out = resize_to_width($src, (int) $config['max_width']);
 
     $dir = $config['uploads_dir'];
     if (!is_dir($dir) || !is_writable($dir)) {
@@ -111,32 +121,58 @@ function load_image(string $path, string $mime)
     return false;
 }
 
-/** Phone photos store rotation in EXIF; bake it into the pixels before EXIF is dropped. */
-function apply_exif_orientation($img, string $path)
+/**
+ * Phone photos store rotation in EXIF; we bake it into the pixels because
+ * re-encoding drops EXIF. Returns the imagerotate() angle (0 = none).
+ */
+function exif_rotation(string $path): int
 {
     if (!function_exists('exif_read_data')) {
-        return $img;
+        return 0;
     }
     $exif = @exif_read_data($path);
-    $o = (int) ($exif['Orientation'] ?? 1);
-    $map = [3 => 180, 6 => -90, 8 => 90];
-    if (isset($map[$o])) {
-        $rotated = imagerotate($img, $map[$o], 0);
-        if ($rotated) {
-            imagedestroy($img);
-            return $rotated;
-        }
-    }
-    return $img;
+    return [3 => 180, 6 => -90, 8 => 90][(int) ($exif['Orientation'] ?? 1)] ?? 0;
 }
 
-/** Scale down to $maxWidth (never up), flattening transparency onto white. */
-function resize_to_width($src, int $maxWidth)
+/** '128M' → bytes; -1 means unlimited. */
+function ini_bytes(string $v): int
+{
+    $v = trim($v);
+    if ($v === '' || $v === '-1') {
+        return -1;
+    }
+    $n = (int) $v;
+    switch (strtolower(substr($v, -1))) {
+        case 'g': return $n * 1024 ** 3;
+        case 'm': return $n * 1024 ** 2;
+        case 'k': return $n * 1024;
+    }
+    return $n;
+}
+
+/** Rough GD memory need (~5 B/pixel for source + output, plus PHP overhead) vs. the limit. */
+function image_fits_memory(int $w, int $h, int $maxWidth, int $limit): bool
+{
+    if ($limit < 0) {
+        return true;
+    }
+    $outW = min(max($w, $h), $maxWidth);
+    $need = $w * $h * 5 + $outW * $outW * 5 * 2 + 24 * 1024 ** 2;
+    return $need <= $limit - memory_get_usage();
+}
+
+/**
+ * Scale down so the final width is at most $maxWidth (never up), flattening
+ * transparency onto white. $willRotate90: the image is rotated by 90° afterwards,
+ * so its current height becomes the final width.
+ */
+function resize_to_width($src, int $maxWidth, bool $willRotate90 = false)
 {
     $w = imagesx($src);
     $h = imagesy($src);
-    $nw = min($w, $maxWidth);
-    $nh = max(1, (int) round($h * $nw / $w));
+    $scale = min(1, $maxWidth / ($willRotate90 ? $h : $w));
+    $nw = max(1, (int) round($w * $scale));
+    $nh = max(1, (int) round($h * $scale));
     $dst = imagecreatetruecolor($nw, $nh);
     imagefill($dst, 0, 0, imagecolorallocate($dst, 255, 255, 255));
     imagecopyresampled($dst, $src, 0, 0, 0, 0, $nw, $nh, $w, $h);
