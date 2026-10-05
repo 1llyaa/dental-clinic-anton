@@ -1,0 +1,21 @@
+Options -Indexes
+DirectoryIndex index.php
+
+<FilesMatch "^(config\.php|config\.example\.php|\.htpasswd|.*\.md)$">
+  Require all denied
+</FilesMatch>
+
+# index.php sends its own X-Frame-Options: DENY and X-Robots-Tag; drop the
+# site-wide SAMEORIGIN so the browser never sees two conflicting values.
+<IfModule mod_headers.c>
+  Header always unset X-Frame-Options
+</IfModule>
+
+# Second layer: HTTP Basic Auth in front of the PHP login (filters bots).
+# Enable after creating the .htpasswd file — see DEPLOY.md. The path must be
+# absolute and is specific to the hosting account; a wrong path = error 500.
+#
+# AuthType Basic
+# AuthName "Sprava webu"
+# AuthUserFile /data/web/virtuals/XXXXX/virtual/www/domains/zubnilisov.cz/admin/.htpasswd
+# Require valid-user

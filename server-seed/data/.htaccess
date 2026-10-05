@@ -1,0 +1,16 @@
+# Only the three public data files are readable; everything else
+# (backups/, private/, temp files) is denied.
+Options -Indexes
+Require all denied
+
+<FilesMatch "^(banner|hours|news)\.json$">
+  Require all granted
+  ForceType "application/json; charset=utf-8"
+  <IfModule mod_headers.c>
+    Header set Cache-Control "public, max-age=60"
+  </IfModule>
+</FilesMatch>
+
+<IfModule mod_php.c>
+  php_flag engine off
+</IfModule>

@@ -1,0 +1,17 @@
+---
+interface Props {
+  src: string | null;
+  label: string;
+}
+const { src, label } = Astro.props;
+// Missing photo: show what belongs here while developing, a plain tinted block in production.
+const showLabel = import.meta.env.DEV;
+---
+
+<div class="photo-slot" aria-hidden={src ? undefined : 'true'}>
+  {src ? (
+    <img src={src} alt={label} loading="lazy" decoding="async" />
+  ) : (
+    showLabel && <span>{label}</span>
+  )}
+</div>

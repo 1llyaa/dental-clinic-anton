@@ -1,0 +1,70 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import { priceGroups, pricesValidFrom } from '../data/prices';
+---
+
+<Base title="Ceník" description="Orientační ceník zubní ordinace a dentální hygieny v Lišově.">
+  <PageHero
+    eyebrow="Ceník"
+    title="Orientační ceník"
+    intro="Ceny jsou uvedeny jako „od“ — konkrétní částku vždy určuje rozsah ošetření a použitý materiál. Cenu vám sdělíme předem."
+  />
+  <div class="wrap">
+    {priceGroups.map((g) => (
+      <section class="group">
+        <h2>{g.title}</h2>
+        <dl>
+          {g.rows.map((r) => (
+            <div class="row">
+              <dt>{r.label}</dt>
+              <dd>{r.price}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+    ))}
+    <p class="muted small">
+      Ceník je informativní a není závaznou nabídkou. Aktuální znění platné od {pricesValidFrom}.
+    </p>
+  </div>
+</Base>
+
+<style>
+  .wrap {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 44px var(--gutter) 60px;
+  }
+  .group {
+    margin-bottom: 38px;
+  }
+  h2 {
+    margin-bottom: 10px;
+    font-family: var(--font-head);
+    font-weight: 800;
+    color: var(--navy);
+    font-size: 20px;
+  }
+  dl {
+    margin: 0;
+  }
+  .row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 20px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border-soft);
+  }
+  dd {
+    margin: 0;
+    font-family: var(--font-head);
+    font-weight: 700;
+    color: var(--navy);
+    white-space: nowrap;
+  }
+  .small {
+    font-size: 16px;
+  }
+</style>

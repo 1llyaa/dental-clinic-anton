@@ -1,0 +1,25 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="Stránka nenalezena" description="Požadovaná stránka neexistuje.">
+  <div class="container wrap">
+    <p class="eyebrow">Chyba 404</p>
+    <h1 class="h-page">Tuto stránku jsme nenašli</h1>
+    <p class="muted">Možná byla přesunuta. Pokračujte na úvodní stránku nebo nám zavolejte.</p>
+    <a href="/" class="btn btn-primary">
+      Na úvodní stránku
+    </a>
+  </div>
+</Base>
+
+<style>
+  .wrap {
+    padding-top: 72px;
+    padding-bottom: 96px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    align-items: flex-start;
+  }
+</style>

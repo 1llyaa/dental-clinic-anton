@@ -1,0 +1,196 @@
+---
+import Base from '../layouts/Base.astro';
+import HoursTable from '../components/HoursTable.astro';
+import NewsList from '../components/NewsList.astro';
+import PhotoSlot from '../components/PhotoSlot.astro';
+import { quickLinks, site, telHref } from '../data/site';
+---
+
+<Base description="Malá rodinná zubní ordinace v Lišově u Českých Budějovic. Prevence, dentální hygiena, ošetření chrupu i estetická stomatologie.">
+  <section class="hero">
+    <div class="container hero-grid">
+      <div>
+        <p class="eyebrow">Lišov u Českých Budějovic</p>
+        <h1 class="hero-title">Zubní péče v klidu a bez spěchu</h1>
+        <p class="hero-text">
+          Jsme malá rodinná ordinace, kde se o vás postará stále stejný tým. Věnujeme se prevenci,
+          dentální hygieně i ošetření chrupu — vždy s vysvětlením každého kroku.
+        </p>
+        <div class="actions">
+          <a href="/objednani/" class="btn btn-primary">
+            Objednat se
+          </a>
+          <a href="/sluzby/" class="btn btn-outline">
+            Naše služby
+          </a>
+        </div>
+      </div>
+      <div class="hero-photo">
+        <PhotoSlot src={null} label="Fotografie ordinace nebo týmu (na šířku)" />
+      </div>
+    </div>
+  </section>
+
+  <section class="container quick">
+    <div class="grid-3 gap">
+      {quickLinks.map((q) => (
+        <a href={q.href} class="card quick-card">
+          <h2 class="h-card">{q.title}</h2>
+          <p class="muted">{q.text}</p>
+          <span class="link-arrow">{q.cta} →</span>
+        </a>
+      ))}
+    </div>
+  </section>
+
+  <section class="container news-teaser" data-news-section hidden>
+    <div class="news-head">
+      <h2 class="h-section">Aktuálně</h2>
+      <a href="/aktuality/" class="link-arrow">
+        Všechny novinky →
+      </a>
+    </div>
+    <NewsList limit={2} />
+  </section>
+
+  <section class="container hours-wrap">
+    <div class="hours-box grid-2">
+      <div>
+        <h2 class="hours-title">Ordinační hodiny</h2>
+        <p class="hours-intro">
+          Objednané pacienty ošetřujeme přednostně. Akutní stavy řešíme telefonicky v ordinační
+          dobu.
+        </p>
+        <p class="hours-phone">
+          <a href={telHref}>{site.phone}</a>
+        </p>
+      </div>
+      <HoursTable tone="dark" />
+    </div>
+  </section>
+</Base>
+
+<style>
+  .hero {
+    background: var(--bg-soft);
+  }
+  .hero-grid {
+    padding-top: 56px;
+    padding-bottom: 64px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 40px;
+    align-items: center;
+  }
+  @media (min-width: 760px) {
+    .hero-grid {
+      grid-template-columns: 1.05fr 0.95fr;
+    }
+  }
+  .eyebrow {
+    margin-bottom: 14px;
+  }
+  .hero-title {
+    margin-bottom: 20px;
+    font-family: var(--font-head);
+    font-weight: 800;
+    color: var(--navy);
+    font-size: clamp(32px, 5vw, 52px);
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    text-wrap: pretty;
+  }
+  .hero-text {
+    margin-bottom: 28px;
+    font-size: 19px;
+    max-width: 46ch;
+    text-wrap: pretty;
+  }
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .hero-photo {
+    border-radius: var(--r-xl);
+    overflow: hidden;
+    min-height: 300px;
+    display: flex;
+  }
+
+  .quick {
+    padding-top: 64px;
+    padding-bottom: 8px;
+  }
+  .gap {
+    gap: 20px;
+  }
+  .quick-card {
+    padding: 28px;
+    color: inherit;
+  }
+  .quick-card .h-card {
+    margin-bottom: 10px;
+  }
+  .quick-card .muted {
+    margin-bottom: 14px;
+  }
+
+  .news-teaser {
+    padding-top: 56px;
+  }
+  .news-teaser[hidden] {
+    display: none;
+  }
+  .news-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .h-section {
+    font-family: var(--font-head);
+    font-weight: 800;
+    color: var(--navy);
+    font-size: clamp(24px, 3.2vw, 34px);
+  }
+
+  .hours-wrap {
+    padding-top: 56px;
+    padding-bottom: 56px;
+  }
+  .hours-box {
+    border-radius: var(--r-xl);
+    background: var(--navy);
+    color: #fff;
+    padding: 40px;
+    gap: 32px;
+  }
+  @media (max-width: 480px) {
+    .hours-box {
+      padding: 28px 22px;
+    }
+  }
+  .hours-title {
+    margin-bottom: 14px;
+    font-family: var(--font-head);
+    font-weight: 800;
+    font-size: clamp(24px, 3.2vw, 34px);
+    line-height: 1.15;
+  }
+  .hours-intro {
+    color: var(--on-navy);
+    max-width: 40ch;
+  }
+  .hours-phone {
+    margin-top: 20px;
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 22px;
+  }
+  .hours-phone a {
+    color: #fff;
+    border-bottom: 2px solid var(--cyan);
+  }
+</style>

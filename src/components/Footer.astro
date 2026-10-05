@@ -1,0 +1,104 @@
+---
+import { mailHref, nav, site, telHref } from '../data/site';
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="container cols">
+    <div>
+      <p class="title">ZUBNÍ ORDINACE A DENTÁLNÍ HYGIENA LIŠOV</p>
+      <p>{site.address}</p>
+      <p>
+        <a href={telHref} class="strong">
+          {site.phone}
+        </a>
+      </p>
+      <p>
+        <a href={mailHref} class="strong">
+          {site.email}
+        </a>
+      </p>
+    </div>
+    <div>
+      <p class="head">WEB</p>
+      {nav.map((n) => (
+        <p class="item">
+          <a href={n.href}>{n.label}</a>
+        </p>
+      ))}
+    </div>
+    <div>
+      <p class="head">INFORMACE</p>
+      <p class="item">IČO: {site.ico}</p>
+      <p class="item">
+        <a href="/gdpr/">Ochrana osobních údajů</a>
+      </p>
+      <p class="item">
+        <a href="/gdpr/#impressum">Impressum</a>
+      </p>
+    </div>
+  </div>
+  <div class="bottom">
+    <div class="container">
+      © {year} {site.name} · {site.domain}
+    </div>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    background: var(--navy-dark);
+    color: var(--on-navy);
+    margin-top: auto;
+  }
+  .cols {
+    padding-top: 48px;
+    padding-bottom: 28px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  @media (min-width: 760px) {
+    .cols {
+      grid-template-columns: 1.4fr 1fr 1fr;
+    }
+  }
+  .cols p {
+    margin: 0 0 4px;
+  }
+  .title {
+    margin-bottom: 10px !important;
+    font-family: var(--font-head);
+    font-weight: 800;
+    color: #fff;
+    font-size: 16px;
+    letter-spacing: 0.02em;
+  }
+  .head {
+    margin-bottom: 12px !important;
+    font-family: var(--font-head);
+    font-weight: 700;
+    color: var(--cyan-soft);
+    letter-spacing: 0.1em;
+    font-size: 12px;
+  }
+  .item {
+    margin-bottom: 8px !important;
+  }
+  a {
+    color: var(--on-navy);
+  }
+  a:hover,
+  a.strong {
+    color: #fff;
+  }
+  .bottom {
+    border-top: 1px solid rgba(255, 255, 255, 0.14);
+    font-size: 14px;
+    color: var(--footer-muted);
+  }
+  .bottom .container {
+    padding-top: 18px;
+    padding-bottom: 18px;
+  }
+</style>

@@ -1,0 +1,66 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import { values } from '../data/site';
+---
+
+<Base
+  title="O nás"
+  description="Malé pracoviště s osobním přístupem. Prevence, vysvětlení každého kroku a klidné tempo ošetření."
+>
+  <PageHero eyebrow="O nás" title="Péče, která začíná vysvětlením" />
+  <div class="container body grid-2">
+    <div>
+      <p class="lead p">
+        Naše ordinace v Lišově funguje jako malé pracoviště s osobním přístupem. Znamená to, že vás
+        pokaždé přijme stejný lékař i hygienistka a že o vašem chrupu mluvíme lidsky — bez zbytečné
+        latiny a bez tlaku na rychlé rozhodnutí.
+      </p>
+      <p class="muted p">
+        Základem je pro nás prevence. Pravidelná prohlídka a dentální hygiena dokáží předejít
+        většině bolestivých i nákladných zákroků. Pokud už je potřeba ošetření, vždy vám nejdřív
+        popíšeme možnosti, přibližnou cenu a to, co se bude dít.
+      </p>
+      <p class="muted">
+        Pracujeme s moderním vybavením, dodržujeme přísné hygienické standardy a průběžně se
+        vzděláváme. Zvláštní pozornost věnujeme pacientům, kteří mají ze zubaře strach — tempo
+        ošetření přizpůsobíme vám.
+      </p>
+    </div>
+    <div class="values">
+      {values.map((v) => (
+        <div class="value">
+          <h2>{v.title}</h2>
+          <p class="muted">{v.text}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+</Base>
+
+<style>
+  .body {
+    padding-top: 48px;
+    padding-bottom: 48px;
+    gap: 44px;
+  }
+  .p {
+    margin-bottom: 20px;
+  }
+  .values {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .value {
+    border-left: 3px solid var(--cyan);
+    padding: 4px 0 4px 18px;
+  }
+  .value h2 {
+    margin-bottom: 4px;
+    font-family: var(--font-head);
+    font-weight: 800;
+    color: var(--navy);
+    font-size: 18px;
+  }
+</style>

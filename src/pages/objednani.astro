@@ -1,0 +1,146 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import { bookingPrep, mailHref, site, telHref } from '../data/site';
+---
+
+<Base
+  title="Objednání"
+  description="Objednejte se telefonicky do zubní ordinace v Lišově. Co si připravit na první návštěvu."
+>
+  <PageHero
+    eyebrow="Objednání"
+    title="Objednejte se telefonicky"
+    intro="Termíny zatím sjednáváme po telefonu — je to nejrychlejší cesta, jak najít čas, který vám vyhovuje."
+  />
+  <div class="container grid-2 top">
+    <div class="phone-card">
+      <p class="k">Telefon</p>
+      <p class="num">
+        <a href={telHref}>{site.phone}</a>
+      </p>
+      <p class="on-navy">
+        Voláme si v ordinační hodiny. Pokud se nedovoláte, ošetřujeme pacienta — zkuste to prosím
+        později nebo napište e-mail.
+      </p>
+      <p class="mail">
+        <a href={mailHref}>{site.email}</a>
+      </p>
+    </div>
+    <div>
+      <h2 class="prep-title">Co si připravit</h2>
+      <ul class="prep">
+        {bookingPrep.map((p) => (
+          <li>
+            <span class="tick" aria-hidden="true">
+              ✓
+            </span>
+            <span class="muted">{p}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </div>
+  <div class="container soon-wrap">
+    <div class="soon">
+      <p class="eyebrow small-eyebrow">Připravujeme</p>
+      <h2>Online rezervace termínu</h2>
+      <p class="muted">
+        Brzy se budete moci objednat i online — v kalendáři s volnými termíny, kdykoliv během dne.
+      </p>
+    </div>
+  </div>
+</Base>
+
+<style>
+  .top {
+    padding-top: 44px;
+    padding-bottom: 60px;
+    gap: 28px;
+  }
+  .phone-card {
+    border-radius: var(--r-xl);
+    background: var(--navy);
+    color: #fff;
+    padding: 36px;
+  }
+  .k {
+    margin-bottom: 10px;
+    font-family: var(--font-head);
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    font-size: 13px;
+    color: var(--cyan-soft);
+    text-transform: uppercase;
+  }
+  .num {
+    margin-bottom: 20px;
+    font-family: var(--font-head);
+    font-weight: 800;
+    font-size: clamp(26px, 4vw, 36px);
+  }
+  .num a,
+  .mail a {
+    color: #fff;
+  }
+  .on-navy {
+    margin-bottom: 26px;
+    color: var(--on-navy);
+  }
+  .mail {
+    font-family: var(--font-head);
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+  .mail a {
+    border-bottom: 2px solid var(--cyan);
+  }
+  .prep-title {
+    margin-bottom: 14px;
+    font-family: var(--font-head);
+    font-weight: 800;
+    color: var(--navy);
+    font-size: 20px;
+  }
+  .prep {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .prep li {
+    display: flex;
+    gap: 12px;
+    padding: 11px 0;
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .tick {
+    color: var(--cyan);
+    font-weight: 700;
+  }
+  .soon-wrap {
+    padding-bottom: 72px;
+  }
+  .soon {
+    border: 2px dashed #9ed9ee;
+    border-radius: var(--r-xl);
+    background: #f7fcfe;
+    padding: 36px;
+    text-align: center;
+  }
+  .small-eyebrow {
+    margin-bottom: 8px;
+    font-size: 12px;
+    letter-spacing: 0.12em;
+  }
+  .soon h2 {
+    margin-bottom: 10px;
+    font-family: var(--font-head);
+    font-weight: 800;
+    color: var(--navy);
+    font-size: clamp(22px, 3vw, 30px);
+  }
+  .soon .muted {
+    margin: 0 auto;
+    max-width: 48ch;
+  }
+</style>

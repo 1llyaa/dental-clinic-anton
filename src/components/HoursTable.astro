@@ -1,0 +1,56 @@
+---
+import { defaultHours } from '../data/hours.default';
+
+interface Props {
+  tone?: 'light' | 'dark';
+}
+const { tone = 'light' } = Astro.props;
+---
+
+<div class:list={['hours', tone]} data-hours>
+  <div data-hours-rows>
+    {defaultHours.regular.map((r) => (
+      <div class="row">
+        <span class="day">{r.day}</span>
+        <span class="val">{r.value}</span>
+      </div>
+    ))}
+  </div>
+  <p class="note" data-hours-note hidden={!defaultHours.note}>
+    {defaultHours.note}
+  </p>
+</div>
+
+<style>
+  .row {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .day {
+    font-family: var(--font-head);
+    font-weight: 600;
+  }
+  .val {
+    color: var(--muted);
+    text-align: right;
+  }
+  .note {
+    margin-top: 12px;
+    font-size: 15px;
+    color: var(--muted);
+  }
+  .note[hidden] {
+    display: none;
+  }
+  .dark .row {
+    padding: 11px 0;
+    border-bottom-color: rgba(255, 255, 255, 0.16);
+  }
+  .dark .val,
+  .dark .note {
+    color: var(--on-navy);
+  }
+</style>

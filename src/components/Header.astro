@@ -1,0 +1,218 @@
+---
+import Logo from './Logo.astro';
+import { nav, telHref } from '../data/site';
+
+const path = Astro.url.pathname;
+const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWith(href));
+---
+
+<header class="site-header">
+  <div class="container bar">
+    <a href="/" class="brand" aria-label="Zubní ordinace a dentální hygiena Lišov — úvod">
+      <Logo />
+      <span class="brand-text">
+        <span class="brand-name">ZUBNÍ ORDINACE A DENTÁLNÍ HYGIENA</span>
+        <span class="brand-place">LIŠOV</span>
+      </span>
+    </a>
+
+    <nav class="nav-desktop" aria-label="Hlavní menu">
+      {nav.map((n) => (
+        <a
+          href={n.href}
+          class:list={['nav-link', { active: isActive(n.href) }]}
+          aria-current={isActive(n.href) ? 'page' : undefined}
+        >
+          {n.label}
+        </a>
+      ))}
+      <a href="/objednani/" class="btn btn-primary nav-cta">
+        Objednat se
+      </a>
+    </nav>
+
+    <div class="nav-mobile-actions">
+      <a href={telHref} class="btn btn-primary call">
+        Zavolat
+      </a>
+      <button
+        type="button"
+        class="menu-toggle"
+        aria-label="Menu"
+        aria-expanded="false"
+        aria-controls="mobile-menu"
+        data-menu-toggle
+      >
+        ☰
+      </button>
+    </div>
+  </div>
+
+  <nav id="mobile-menu" class="nav-mobile" aria-label="Hlavní menu" hidden>
+    {nav.map((n) => (
+      <a
+        href={n.href}
+        class:list={['nav-mobile-link', { active: isActive(n.href) }]}
+        aria-current={isActive(n.href) ? 'page' : undefined}
+      >
+        {n.label}
+      </a>
+    ))}
+  </nav>
+</header>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+  }
+  .bar {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .brand :global(svg) {
+    flex: 0 0 auto;
+  }
+  .brand-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .brand-name {
+    font-family: var(--font-head);
+    font-weight: 800;
+    color: var(--navy);
+    letter-spacing: 0.02em;
+    font-size: clamp(12px, 2.4vw, 15px);
+    line-height: 1.2;
+    text-wrap: balance;
+  }
+  .brand-place {
+    font-family: var(--font-head);
+    font-weight: 600;
+    color: var(--cyan);
+    letter-spacing: 0.22em;
+    font-size: 12px;
+  }
+
+  .nav-desktop {
+    display: none;
+    align-items: center;
+    gap: 2px;
+    white-space: nowrap;
+  }
+  .nav-link {
+    font-family: var(--font-head);
+    font-weight: 600;
+    font-size: 15px;
+    padding: 10px 11px;
+    border-radius: 8px;
+    color: var(--text);
+  }
+  .nav-link:hover {
+    color: var(--cyan);
+  }
+  .nav-link.active {
+    color: var(--cyan);
+    background: #f2fbfe;
+  }
+  .nav-cta {
+    margin-left: 10px;
+    font-size: 15px;
+    padding: 11px 18px;
+    border-radius: var(--r-sm);
+  }
+
+  .nav-mobile-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .call {
+    font-size: 14px;
+    padding: 10px 14px;
+    border-radius: var(--r-sm);
+  }
+  .menu-toggle {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--r-sm);
+    border: 1px solid var(--border-input);
+    background: #fff;
+    color: var(--navy);
+    cursor: pointer;
+    font-size: 18px;
+  }
+
+  .nav-mobile {
+    border-top: 1px solid var(--border);
+    background: #fff;
+    padding: 8px var(--gutter) 16px;
+    display: flex;
+    flex-direction: column;
+  }
+  .nav-mobile[hidden] {
+    display: none;
+  }
+  .nav-mobile-link {
+    font-family: var(--font-head);
+    font-weight: 600;
+    font-size: 17px;
+    padding: 14px 4px;
+    border-bottom: 1px solid var(--border-soft);
+    color: var(--text);
+  }
+  .nav-mobile-link.active {
+    color: var(--cyan);
+  }
+
+  @media (min-width: 1160px) {
+    .nav-desktop {
+      display: flex;
+    }
+    .brand-name {
+      font-size: 13px;
+      white-space: nowrap;
+    }
+    .nav-mobile-actions,
+    .nav-mobile {
+      display: none !important;
+    }
+  }
+</style>
+
+<script>
+  const toggle = document.querySelector<HTMLButtonElement>('[data-menu-toggle]');
+  const menu = document.getElementById('mobile-menu');
+  if (toggle && menu) {
+    const set = (open: boolean) => {
+      menu.hidden = !open;
+      toggle.setAttribute('aria-expanded', String(open));
+      toggle.textContent = open ? '✕' : '☰';
+    };
+    toggle.addEventListener('click', () => set(menu.hasAttribute('hidden')));
+    menu.addEventListener('click', (e) => {
+      if ((e.target as HTMLElement).closest('a')) set(false);
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !menu.hasAttribute('hidden')) {
+        set(false);
+        toggle.focus();
+      }
+    });
+  }
+</script>
