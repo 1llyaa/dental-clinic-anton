@@ -2,8 +2,9 @@
 import Base from '../layouts/Base.astro';
 import HoursTable from '../components/HoursTable.astro';
 import NewsList from '../components/NewsList.astro';
-import PhotoSlot from '../components/PhotoSlot.astro';
+import { Picture } from 'astro:assets';
 import { quickLinks, site, telHref } from '../data/site';
+import heroPhoto from '../assets/hero-ordinace.jpg';
 ---
 
 <Base description="Malá rodinná zubní ordinace v Lišově u Českých Budějovic. Prevence, dentální hygiena, ošetření chrupu i estetická stomatologie.">
@@ -26,7 +27,15 @@ import { quickLinks, site, telHref } from '../data/site';
         </div>
       </div>
       <div class="hero-photo">
-        <PhotoSlot src={null} label="Fotografie ordinace nebo týmu (na šířku)" />
+        <Picture
+          src={heroPhoto}
+          alt="Ošetřovna ordinace se zubním křeslem u velkých oken"
+          formats={['avif', 'webp']}
+          widths={[640, 960, 1280, 1600]}
+          sizes="(min-width: 1200px) 560px, (min-width: 760px) 46vw, 100vw"
+          loading="eager"
+          fetchpriority="high"
+        />
       </div>
     </div>
   </section>
@@ -116,6 +125,16 @@ import { quickLinks, site, telHref } from '../data/site';
     overflow: hidden;
     min-height: 300px;
     display: flex;
+    background: var(--placeholder);
+  }
+  .hero-photo :global(picture) {
+    display: contents;
+  }
+  .hero-photo :global(img) {
+    width: 100%;
+    height: auto;
+    min-height: 300px;
+    object-fit: cover;
   }
 
   .quick {
