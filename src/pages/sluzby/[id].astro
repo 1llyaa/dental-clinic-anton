@@ -1,14 +1,21 @@
 ---
 import Base from '../../layouts/Base.astro';
 import { services, type Service } from '../../data/services';
+import { breadcrumbs } from '../../lib/seo/jsonld';
 
 export function getStaticPaths() {
   return services.map((s) => ({ params: { id: s.id }, props: { service: s } }));
 }
 const { service } = Astro.props as { service: Service };
+const jsonLd = [
+  breadcrumbs(Astro.site!, [
+    { name: 'Služby', path: '/sluzby/' },
+    { name: service.title, path: `/sluzby/${service.id}/` },
+  ]),
+];
 ---
 
-<Base title={service.title} description={`${service.title} — ${service.lead}`}>
+<Base title={service.title} description={`${service.title} — ${service.lead}`} jsonLd={jsonLd}>
   <div class="container wrap">
     <a href="/sluzby/" class="back">
       ← Zpět na služby

@@ -1,34 +1,40 @@
 ---
 import '../styles/global.css';
+import { getImage } from 'astro:assets';
 import Banner from '../components/Banner.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import { site } from '../data/site';
+import { siteGraph } from '../lib/seo/jsonld';
+import heroPhoto from '../assets/hero-ordinace.jpg';
 
 interface Props {
   title?: string;
   description: string;
+  /** Keep the page out of search results (and out of the sitemap — see check-seo). */
+  noindex?: boolean;
+  /** Extra schema.org nodes for this page (breadcrumbs, person, …). */
+  jsonLd?: Record<string, unknown>[];
 }
-const { title, description } = Astro.props;
+const { title, description, noindex = false, jsonLd = [] } = Astro.props;
+const origin = Astro.site!;
 const fullTitle = title ? `${title} | ${site.name}` : site.name;
-const canonical = new URL(Astro.url.pathname, Astro.site);
+const canonical = new URL(Astro.url.pathname, origin);
 
-// No openingHours here: hours are edited in the admin at runtime and this
-// build-time copy would go stale in search results.
-const jsonLd = {
+// 1200×630 is the size Facebook, LinkedIn, WhatsApp and X all crop to cleanly.
+const ogImage = await getImage({
+  src: heroPhoto,
+  width: 1200,
+  height: 630,
+  fit: 'cover',
+  format: 'jpg',
+});
+const ogImageUrl = new URL(ogImage.src, origin).href;
+const logoUrl = new URL('/icon-512.png', origin).href;
+
+const graph = {
   '@context': 'https://schema.org',
-  '@type': 'Dentist',
-  name: site.name,
-  url: Astro.site?.toString(),
-  telephone: site.phone,
-  email: site.email,
-  address: {
-    '@type': 'PostalAddress',
-    streetAddress: site.street,
-    addressLocality: site.city,
-    postalCode: site.zip,
-    addressCountry: 'CZ',
-  },
+  '@graph': [...siteGraph(origin, { photo: ogImageUrl, logo: logoUrl }), ...jsonLd],
 };
 ---
 
@@ -39,16 +45,26 @@ const jsonLd = {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex" />}
     <link rel="canonical" href={canonical} />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon-48.png" type="image/png" sizes="48x48" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
     <meta name="theme-color" content="#113080" />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="cs_CZ" />
+    <meta property="og:site_name" content={site.name} />
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
-    <link rel="sitemap" href="/sitemap-index.xml" />
-    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+    <meta property="og:image" content={ogImageUrl} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Ošetřovna ordinace se zubním křeslem u velkých oken" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="sitemap" href="/sitemap_index.xml" />
+    <script type="application/ld+json" set:html={JSON.stringify(graph)} />
   </head>
   <body>
     <a href="#obsah" class="skip">
