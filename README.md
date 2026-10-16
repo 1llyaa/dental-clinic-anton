@@ -22,9 +22,10 @@ npm run serve:php     # full local server like Wedos (Docker), http://localhost:
 npm run test:e2e      # admin end-to-end smoke test (needs serve:php)
 ```
 
-Deploy: see [DEPLOY.md](DEPLOY.md).
+Deploy: see [DEPLOY.md](DEPLOY.md). Sitemap, robots, structured data and the legal checklist: see [SEO.md](SEO.md).
 
 ## Before launch — content from the clinic
 
 Search for `TODO(Anton)`: phone, IČO, address check, portrait and hero photos (`team.ts` `photo`, `index.astro`),
-service descriptions, full GDPR text, final domain (`astro.config.mjs` `site`, `public/robots.txt`).
+service descriptions, full GDPR text and legal Impressum data (see [SEO.md](SEO.md#legal--to-verify-with-the-clinic-not-legal-advice)),
+map coordinates and listing URLs (`site.ts` `geo`, `sameAs`), final domain (`astro.config.mjs` `site` — the only place).

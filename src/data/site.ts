@@ -2,6 +2,8 @@
 export const site = {
   name: 'Zubní ordinace a dentální hygiena Lišov',
   shortName: 'Zubní Lišov',
+  description:
+    'Malá rodinná zubní ordinace v Lišově u Českých Budějovic. Prevence, dentální hygiena, ošetření chrupu i estetická stomatologie.',
   domain: 'zubnilisov.cz',
   phone: '+420 387 000 000',
   email: 'info@zubnilisov.cz',
@@ -10,6 +12,10 @@ export const site = {
   city: 'Lišov',
   zip: '373 72',
   ico: '000 000 00 (doplnit)',
+  // TODO(Anton): exact coordinates of the entrance (e.g. from Mapy.com) — goes into structured data.
+  geo: null as { lat: number; lng: number } | null,
+  // TODO(Anton): Google Business Profile and Firmy.cz listing URLs, once claimed.
+  sameAs: [] as string[],
   mapEmbed:
     'https://www.openstreetmap.org/export/embed.html?bbox=14.5720%2C49.0060%2C14.6180%2C49.0290&layer=mapnik',
 };

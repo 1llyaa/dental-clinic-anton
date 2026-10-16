@@ -1,6 +1,5 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
-import sitemap from '@astrojs/sitemap';
 import { createReadStream, existsSync, statSync } from 'node:fs';
 import { join, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -33,9 +32,9 @@ function serveSeedData() {
 }
 
 export default defineConfig({
+  // Canonical origin for canonical URLs, sitemaps, robots.txt, llms.txt and JSON-LD.
   site: 'https://www.zubnilisov.cz',
   trailingSlash: 'always',
   build: { format: 'directory' },
-  integrations: [sitemap({ filter: (page) => !page.includes('/admin/') })],
   vite: { plugins: [serveSeedData()] },
 });

@@ -2,14 +2,26 @@
 import Base from '../../layouts/Base.astro';
 import PhotoSlot from '../../components/PhotoSlot.astro';
 import { team, type Member } from '../../data/team';
+import { breadcrumbs, person } from '../../lib/seo/jsonld';
 
 export function getStaticPaths() {
   return team.map((m) => ({ params: { id: m.id }, props: { member: m } }));
 }
 const { member } = Astro.props as { member: Member };
+const jsonLd = [
+  breadcrumbs(Astro.site!, [
+    { name: 'Tým', path: '/tym/' },
+    { name: member.name, path: `/tym/${member.id}/` },
+  ]),
+  person(Astro.site!, member),
+];
 ---
 
-<Base title={member.name} description={`${member.name} — ${member.role}. ${member.bio}`}>
+<Base
+  title={member.name}
+  description={`${member.name} — ${member.role}. ${member.bio}`}
+  jsonLd={jsonLd}
+>
   <div class="container wrap">
     <a href="/tym/" class="back">
       ← Zpět na tým
