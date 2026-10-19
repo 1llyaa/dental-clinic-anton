@@ -8,16 +8,25 @@ AddType application/manifest+json .webmanifest
 <IfModule mod_rewrite.c>
   RewriteEngine On
 
+  # Wedos' own www/.htaccess internally rewrites every request into
+  # /domains/<domain>/, so %{REQUEST_URI} here already carries that prefix.
+  # Redirects therefore use $1 (the path relative to this directory) instead.
+
+  # Undo old redirects that leaked the internal prefix into public URLs.
+  RewriteCond %{THE_REQUEST} \s/domains/[^/]+/(\S*)\s
+  RewriteCond %{HTTP_HOST} !^(localhost|127\.0\.0\.1)(:\d+)?$
+  RewriteRule ^ https://www.zubnilisov.cz/%1 [L,R=301]
+
   # One canonical host: apex → www, straight to HTTPS (matches `site` in astro.config.mjs).
   RewriteCond %{HTTP_HOST} !^www\. [NC]
   RewriteCond %{HTTP_HOST} !^(localhost|127\.0\.0\.1)(:\d+)?$
-  RewriteRule ^ https://www.%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+  RewriteRule ^(.*)$ https://www.%{HTTP_HOST}/$1 [L,R=301]
 
   # Force HTTPS (enable Let's Encrypt in Wedos admin first). Skipped for local testing.
   RewriteCond %{HTTPS} !=on
   RewriteCond %{HTTP:X-Forwarded-Proto} !=https
   RewriteCond %{HTTP_HOST} !^(localhost|127\.0\.0\.1)(:\d+)?$
-  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+  RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [L,R=301]
 
   # Hide dotfiles (except .well-known for certificates).
   RewriteRule (^|/)\.(?!well-known/) - [F]
