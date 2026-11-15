@@ -5,6 +5,23 @@ ErrorDocument 404 /404.html
 AddDefaultCharset utf-8
 AddType application/manifest+json .webmanifest
 
+# ---- Pre-launch lock: delete this block when the site goes live. ----
+# Whole site behind HTTP Basic Auth, reusing admin/.htpasswd (lives only on the
+# server, never deployed; see DEPLOY.md step 7). Wrong AuthUserFile path = 500.
+# Plain-http requests skip the prompt so the password never travels unencrypted;
+# the rewrite below sends them to HTTPS first. Folders with their own Require
+# (data/, uploads/, admin/lib/) keep their rules. REQUEST_URI carries Wedos'
+# /domains/<domain>/ prefix, hence the unanchored match.
+ErrorDocument 401 /pripravujeme.html
+AuthType Basic
+AuthName "Zubni ordinace Lisov - pripravujeme"
+AuthUserFile /data/web/virtuals/XXXXX/virtual/www/domains/zubnilisov.cz/admin/.htpasswd
+<RequireAny>
+  Require valid-user
+  Require expr "%{HTTPS} != 'on' && req('X-Forwarded-Proto') != 'https'"
+  Require expr "%{REQUEST_URI} =~ m#/(\.well-known/|pripravujeme\.html$)#"
+</RequireAny>
+
 <IfModule mod_rewrite.c>
   RewriteEngine On
 

@@ -38,6 +38,20 @@ upload tool to **exclude** them, so a sync with "delete remote files" can't remo
    error 500 on `/admin/` → fix the path and push again.
 8. Smoke test on the live site: turn the banner on with a photo, check the website within a minute, turn it off.
 
+## Pre-launch lock
+
+Until launch, the whole site sits behind HTTP Basic Auth (block at the top of `public/.htaccess`). Visitors without
+the password get the browser login prompt, then `pripravujeme.html` ("Web se připravuje"). It reuses `admin/.htpasswd`
+from step 7, so one login covers the site and `/admin/` (the admin's own password still applies on top).
+
+- Create and upload `admin/.htpasswd` (step 7), put the absolute path from `check.php` into `AuthUserFile`. While the
+  `XXXXX` placeholder is there, `guard-dist` fails the build so it can't deploy a site-wide error 500.
+- Add a person: append another `htpasswd -nbB <name> '<password>'` line to the file on the server.
+- Left open on purpose: `/.well-known/` (certificate renewal), `pripravujeme.html`, and the public `data/*.json`
+  (banner, hours, news; those folders have their own rules).
+- **Launch:** delete the block in `public/.htaccess` and `public/pripravujeme.html`, push via PR. Keep `.htpasswd` if
+  Basic Auth in front of `/admin/` stays on.
+
 ## Every release (automatic)
 
 Merge or push to `main`. CI (`.github/workflows/ci.yml`) builds, tests, runs `guard-dist`, then the `deploy` job
