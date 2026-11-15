@@ -1,6 +1,6 @@
 // Fails the build if dist/ contains anything that would overwrite content the
 // clinic owner manages on the server. dist/ is mirrored wholesale via FTPS (CI deploy job).
-import { existsSync, readdirSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const dist = new URL('../dist/', import.meta.url).pathname;
@@ -13,6 +13,8 @@ for (const rel of forbidden) {
 
 if (!existsSync(join(dist, 'admin/index.php'))) problems.push('admin/index.php is missing');
 if (!existsSync(join(dist, '.htaccess'))) problems.push('.htaccess is missing');
+else if (/^\s*AuthUserFile\s+\S*XXXXX/m.test(readFileSync(join(dist, '.htaccess'), 'utf8')))
+  problems.push('.htaccess: AuthUserFile still has the XXXXX placeholder (would be error 500)');
 
 const walk = (dir) =>
   readdirSync(dir, { withFileTypes: true }).flatMap((e) =>
