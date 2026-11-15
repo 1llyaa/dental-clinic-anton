@@ -15,7 +15,7 @@ AddType application/manifest+json .webmanifest
 ErrorDocument 401 /pripravujeme.html
 AuthType Basic
 AuthName "Zubni ordinace Lisov - pripravujeme"
-AuthUserFile /data/web/virtuals/XXXXX/virtual/www/domains/zubnilisov.cz/admin/.htpasswd
+AuthUserFile /data/web/virtuals/392618/virtual/www/domains/zubnilisov.cz/admin/.htpasswd
 <RequireAny>
   Require valid-user
   Require expr "%{HTTPS} != 'on' && req('X-Forwarded-Proto') != 'https'"
